@@ -1,0 +1,87 @@
+﻿@{
+    Layout = "~/_DashboardLayout.cshtml";
+    Page.Title = "Mijn lijsten";
+
+    if (!WebSecurity.IsAuthenticated)
+    {
+        Response.Redirect("~/");
+    }
+
+    var userLists = ListProvider.GetListByOwnerId(WebSecurity.CurrentUserId);
+
+    var name = "";
+    var listCode = "";
+    var lastEdited = "";
+
+    if (IsPost)
+    {
+        Validation.RequireField("list-name", "Vul een naam in");
+
+        Random random = new Random();
+        listCode = Convert.ToString(random.Next(1, 100000));
+        name = Request.Form["list-name"];
+        lastEdited = Convert.ToString(DateTime.Now);
+
+        ListProvider.addNewList(WebSecurity.CurrentUserId, listCode, name, lastEdited);
+
+        Response.Redirect(Request.RawUrl);
+    }
+}
+
+
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pb-2 mb-3 border-bottom">
+    <h1 class="h2">Overzicht van uw lijsten</h1>
+    <button type="button" style="float:right;" class="btn btn-primary" data-toggle="modal" data-target="#addList">
+        Voeg lijst toe
+    </button>
+</div>
+<div class="card-deck">
+
+    @foreach (var data in userLists)
+    {
+        <div class="col-sm-4" style="margin-top:20px;">
+            <div class="card">
+                <img class="card-img-top" src="~/img/list_stock.png" alt="Card image cap">
+                <div class="card-body">
+                    <h5 class="card-title">@data.ListName van: @data.OwnerId</h5>
+                    <p class="card-text">Om deze lijst te delen met anderen stuur je de volgende code door: <b>@data.ListCode</b>.</p>
+                </div>
+                <div class="card-footer">
+                    <small class="text-muted">Lijst aangemaakt op: @data.LastEdited</small>
+                    <a class="btn btn-primary btn-sm float-right" href="ListDetails?list=@data.ListId&unique_token=@data.ListCode">Open Lijst</a>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+<!-- Modal -->
+<div class="modal fade" id="addList" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">Voeg lijst toe</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="control-group" id="fields">
+                    <div class="controls">
+                        <div class="form row">
+                            <form style="width: 80%; margin-left: 20px;" id="new-item" method="post">
+                                <fieldset>
+                                    <div class="form-group">
+                                        <label>Voer uw naam in</label>
+                                        <input required type="text" class="form-control" id="list-name" placeholder="Naam" name="list-name" value="@Request.Form["list-name"]">
+                                        @Html.ValidationMessage("list-name")
+                                    </div>
+                                    <input type="submit" name="button" value="Toevoegen" class="btn btn-primary">
+                                </fieldset>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

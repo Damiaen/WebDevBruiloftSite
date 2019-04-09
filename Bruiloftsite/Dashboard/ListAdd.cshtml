@@ -1,0 +1,41 @@
+﻿@{
+    Layout = "~/_DashboardLayout.cshtml";
+    Page.Title = "Lijsten";
+
+    var name = "";
+    var listCode = "";
+    var lastEdited = "";
+
+    if (IsPost)
+    {
+        Random random = new Random();
+        listCode = Convert.ToString(random.Next(1, 100000));
+        name = Request.Form["list-name"];
+        lastEdited = Convert.ToString(DateTime.Now);
+
+        string connectionString = @"Data Source=(LocalDB)\MSSQLLocalDB;AttachDbFilename=|DataDirectory|\Database.mdf;Integrated Security=True";
+        string provider = "System.Data.SqlClient";
+        Database db = Database.OpenConnectionString(connectionString, provider);
+        var insertCommand = "INSERT INTO PresentLists (OwnerId, ListCode, ListName, LastEdited) VALUES(@0, @1, @2, @3)";
+        db.Execute(insertCommand, WebSecurity.CurrentUserId, listCode, name, lastEdited);
+
+        Response.Redirect("~/Dashboard/ListsOverview");
+
+    }
+}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pb-2 mb-3 border-bottom">
+    <h1 class="h2">Dashboard</h1>
+</div>
+<div id="content">
+    <h1>Overzicht cadeaus eigenaar</h1>
+    <form method="post">
+        <fieldset>
+            <legend>Movie Information</legend>
+            <p>
+                <label for="title">Title:</label>
+                <input type="text" name="list-name" value="@Request.Form["list-name"]" />
+                @Html.ValidationMessage("title")
+            <p><input type="submit" name="buttonSubmit" value="Add Movie" /></p>
+        </fieldset>
+    </form>
+</div>

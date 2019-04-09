@@ -1,0 +1,269 @@
+﻿@{
+    Layout = "~/_DashboardLayout.cshtml";
+    Page.Title = "Overzicht";
+
+    string listId = Request.QueryString["list"];
+    string uniqueToken = Request.QueryString["unique_token"];
+    bool isOwnerOfList = false;
+
+    if (!ListProvider.CheckIfListValid(listId, uniqueToken))
+    {
+        Response.Redirect("~/");
+    }
+
+    if (WebSecurity.IsAuthenticated && ListProvider.CheckIfOwner(listId, uniqueToken, WebSecurity.CurrentUserId))
+    {
+        isOwnerOfList = true;
+    }
+
+    var listData = GiftProvider.GetById(listId);
+
+    var name = "";
+    var price = "";
+    var description = "";
+    var store = "";
+    var priority = "";
+
+
+    if (IsPost)
+    {
+        if (Request["button"] == "purchaseGift")
+        {
+
+            Validation.RequireField("gift-name", "Vul een naam in");
+
+            var giftName = Request.Form["gift-name"];
+            var selectedGift = Request.Form["gift-id"];
+            //var rememberme = Request.Form["gift-rememberme"];
+
+            GiftProvider.buyGiftById(giftName, selectedGift);
+
+            Response.Redirect(Request.RawUrl);
+        }
+
+        if (Request["button"] == "addNewGift")
+        {
+            Validation.RequireField("new-name", "Vul een naam in");
+            Validation.RequireField("new-price", "Vul een prijs in");
+            Validation.RequireField("new-description", "Vul een descriptie in");
+            Validation.RequireField("new-priority", "Voer een prioriteit in");
+
+            name = Request.Form["new-name"];
+            price = Request.Form["new-price"];
+            description = Request.Form["new-description"];
+            store = Request.Form["new-store"];
+            priority = Request.Form["new-priority"];
+
+            GiftProvider.addNewGift(listId, name, price, description, store, priority);
+
+            Response.Redirect(Request.RawUrl);
+        }
+        if (Request["button"] == "deleteList")
+        {
+            ListProvider.deleteListById(listId);
+            Response.Redirect("~/Dashboard/ListsOverview");
+        }
+
+    }
+}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pb-2 mb-3 border-bottom">
+    <h1 class="h2">Dashboard</h1>
+</div>
+<div class="card mb-3">
+    <div class="card-header">
+        <i class="fas fa-table"></i>
+        Overzicht beschikbare cadeaus @{
+            if (isOwnerOfList)
+            {
+        <div style="float: right">
+            <button type="button" class="btn btn-primary btn-sm" data-toggle="modal" data-target="#adminAddModal">
+                Nieuw cadeau toevoegen
+            </button>
+        </div>
+            }
+        }
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+                <thead>
+                    <tr>
+                        <th>Belang</th>
+                        <th>Naam Cadeau</th>
+                        <th>Prijs</th>
+                        <th>Omschrijving</th>
+                        <th>Winkel</th>
+                        <th>Informatie</th>
+                    </tr>
+                </thead>
+                <tfoot>
+                    <tr>
+                        <th>Belang</th>
+                        <th>Naam Cadeau</th>
+                        <th>Prijs</th>
+                        <th>Omschrijving</th>
+                        <th>Winkel</th>
+                        <th>Informatie</th>
+                    </tr>
+                </tfoot>
+                <tbody>
+                    @foreach (Gift data in listData)
+                    {
+                        if (!isOwnerOfList && data.HasBeenBoughtBy == null)
+                        {
+                            <tr>
+                                <td>@data.Priority</td>
+                                <td>@data.GiftName</td>
+                                <td>€@data.GiftPrice</td>
+                                <td>@data.Description</td>
+                                <td>@data.Location</td>
+                                <td>
+                                    <button type="button" class="open-buyGiftModal btn btn-primary" data-selected-id="@data.GiftId" data-toggle="modal" data-target="#buyGiftModal">
+                                        Kopen
+                                    </button>
+                                </td>
+                            </tr>
+                        }
+                        else if (isOwnerOfList)
+                        {
+                            <tr>
+                                <td>@data.Priority</td>
+                                <td>@data.GiftName</td>
+                                <td>€@data.GiftPrice</td>
+                                <td>@data.Description</td>
+                                <td>@data.Location</td>
+                                <td>
+                                    @{
+                                        if (isOwnerOfList && data.HasBeenBoughtBy != null)
+                                        {
+                                            <span style="color: green;">Gekozen door: @data.HasBeenBoughtBy</span>
+                                            <a class='btn btn-sm' style="float:right;" href="GiftEdit?listId=@listId&giftId=@data.GiftId&unique_token=@uniqueToken">Edit/Delete</a>
+                                        }
+                                        else if (isOwnerOfList && data.HasBeenBoughtBy == null)
+                                        {
+                                            <span style="color: red;">Nog niet gekozen</span>
+                                            <a class='btn btn-sm' style="float:right;" href="GiftEdit?listId=@listId&giftId=@data.GiftId&unique_token=@uniqueToken">Edit/Delete</a>
+                                        }
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div class="card-footer small text-muted">
+        @{ if (isOwnerOfList)
+            {
+           <form method="post" style="float:right;">
+                <fieldset>
+                    <input type="submit" name="button" class="btn btn-primary btn-sm btn-danger" value="deleteList">
+                </fieldset>
+           </form>
+            }
+        }
+    </div>
+</div>
+<!-- Modal -->
+<div class="modal fade" id="buyGiftModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">Koop dit cadeau</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="control-group" id="fields">
+                    <div class="controls">
+                        <div class="form row">
+                            <form style="width: 80%; margin-left: 20px;" id="new-item" method="post">
+                                <fieldset>
+                                    <div class="form-group">
+                                        <label>Voer uw naam in</label>
+                                        <input required type="text" class="form-control" id="gift-name" placeholder="Naam" name="gift-name" value="@Request.Form["gift-name"]">
+                                        @Html.ValidationMessage("gift-name")
+                                    </div>
+                                    <input required type="hidden" class="form-control" id="gift-id" name="gift-id" value="@Request.Form["gift-id"]">
+                                    @*<div class="form-group">
+                                        <input type="checkbox" name="gift-rememberme" value="@Request.Form["gift-rememberme"]" id="gift-rememberme" />
+                                        <label>Onthoudt mijn gegevens</label>
+                                    </div>*@
+                                    <input type="submit" name="button" value="purchaseGift" class="btn btn-primary">
+                                </fieldset>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+@{
+    if (isOwnerOfList)
+    {
+        <!-- Modal -->
+        <div class="modal fade" id="adminAddModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="exampleModalLabel">Specificeer cadeau</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="control-group" id="fields">
+                            <div class="controls">
+                                <div class="form row">
+                                    <form style="width: 80%; margin-left: 20px;" id="new-item" method="post">
+                                        <fieldset>
+                                            <div class="form-group">
+                                                <label>Naam cadeau</label>
+                                                <input required type="text" class="form-control" id="new-name" placeholder="Naam" name="new-name" value="@Request.Form["new-name"]">
+                                                @Html.ValidationMessage("new-name")
+                                            </div>
+                                            <div class="form-group">
+                                                <label>Prijs</label>
+                                                <input required type="number" class="form-control" id="new-price" placeholder="Prijs" name="new-price" value="@Request.Form["new-price"]">
+                                                @Html.ValidationMessage("new-price")
+                                            </div>
+                                            <div class="form-group">
+                                                <label>Beschrijving</label>
+                                                <input required type="text" class="form-control" id="new-description" placeholder="Beschrijving" name="new-description" value="@Request.Form["new-description"]">
+                                                @Html.ValidationMessage("new-description")
+                                            </div>
+                                            <div class="form-group">
+                                                <label>Waar te kopen (optioneel)</label>
+                                                <input type="text" class="form-control" id="new-store" placeholder="Waar te kopen" name="new-store" value="@Request.Form["new-store"]">
+                                                @Html.ValidationMessage("new-store")
+                                            </div>
+                                            <div class="form-group">
+                                                <label>Geef een prioriteit op (als nummer)</label>
+                                                <input required type="number" class="form-control" id="new-priority" placeholder="Prioriteit" name="new-priority" value="@Request.Form["new-priority"]">
+                                                @Html.ValidationMessage("new-priority")
+                                            </div>
+                                            <input type="submit" name="button" value="addNewGift" class="btn btn-primary">
+                                        </fieldset>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+}
+
+<script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+<script src="https://code.jquery.com/ui/1.12.0/jquery-ui.min.js"></script>
+
+<script>
+    $(document).on("click", ".open-buyGiftModal", function () {
+        var selectedGiftId = $(this).data('selected-id');
+        $(".modal-body #gift-id").val(selectedGiftId);
+    });
+</script>

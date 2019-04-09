@@ -1,0 +1,90 @@
+﻿<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <link rel="icon" href="~/favicon.ico">
+    <title>@Page.Title</title>
+    <!-- Bootstrap CSS -->
+    <link href="~/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+    <!-- CSS -->
+    <link href="~/Style/dashboard.css" rel="stylesheet">
+    <!-- Custom scripts for this template -->
+    <script src="https://unpkg.com/feather-icons/dist/feather.min.js"></script>
+    <script>
+        feather.replace()
+    </script>
+    <!-- Bootstrap core JavaScript -->
+    <script src="~/vendor/jquery/jquery.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.0/jquery-ui.min.js"></script>
+    <script src="~/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+</head>
+<body>
+    <nav class="navbar navbar-dark sticky-top bg-dark flex-md-nowrap p-0">
+        <a class="navbar-brand col-sm-3 col-md-2 mr-0" href="~/Dashboard/ListsOverview">BruiloftSite - Home</a>
+        <ul class="navbar-nav px-3">
+            <li class="nav-item text-nowrap">
+                @{ 
+                    if (WebSecurity.IsAuthenticated)
+                    {
+                        <form id="logoutForm" action="~/Account/Logout" method="post">
+                            @AntiForgery.GetHtml()
+                            <a class="nav-link" href="javascript:document.getElementById('logoutForm').submit()">Log out</a>
+                        </form>
+                    }
+                }
+            </li>
+        </ul>
+    </nav>
+    <div class="container-fluid">
+        <div class="row">
+            <nav class="col-md-2 d-none d-md-block bg-light sidebar">
+                <div class="sidebar-sticky">
+                    @{
+                        if (WebSecurity.IsAuthenticated)
+                        {
+                            <h4 class="text-center">Welkom op het dashboard!</h4>
+                            <p class="text-center" style="margin-left:20px; margin-right:20px;">
+                                Vanaf de home pagina kan je cadeaulijsten toevoegen. Na het aanmaken van een lijst kan je de lijst openen
+                                en cadeau's toevoegen aan de lijst. Deze cadeau's kan je later nog bewerken als dat nodig is. Om een lijst te delen stuur je de
+                                code te vinden per lijst op de homepagina van het dashboard.
+                            </p>
+                            <h5 class="text-center">Hoe terug naar home?</h5>
+                            <p class="text-center" style="margin-left:20px; margin-right:20px;">
+                                Om terug naar home te gaan druk je linksbovenin op "BruiloftSite - Home".
+                            </p>
+                        }
+                        else
+                        {
+                            <h4 class="text-center">Welkom bij het cadeauoverzicht!</h4>
+                            <p class="text-center" style="margin-left:20px; margin-right:20px;">
+                                Om een cadeau te kopen selecteer je "kopen". Vul hier je gegevens in en koop het geselecteerde cadeau. 
+                                <br /><br /><b>LET OP:</b> Na het kopen van een cadeau kan je dit niet meer annuleren.
+                            </p>
+                            <h5 class="text-center">Hoe terug naar home?</h5>
+                            <p class="text-center" style="margin-left:20px; margin-right:20px;">
+                                Om terug naar home te gaan druk je linksbovenin op "BruiloftSite - Home".
+                            </p>
+                        }
+                    }
+
+                </div>
+            </nav>
+            <main role="main" class="col-md-9 ml-sm-auto col-lg-10 pt-3 px-4" id="body">
+                @RenderBody()
+        </div>
+    </div>
+
+    <!-- Plugin JavaScript -->
+    <script src="~/vendor/jquery-easing/jquery.easing.min.js"></script>
+    <script src="~/vendor/scrollreveal/scrollreveal.min.js"></script>
+    <script src="~/vendor/magnific-popup/jquery.magnific-popup.min.js"></script>
+    <!-- Custom scripts for this template -->
+    <script src="https://unpkg.com/feather-icons/dist/feather.min.js"></script>
+    <script>
+        feather.replace()
+    </script>
+</body>
+</html>

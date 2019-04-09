@@ -1,0 +1,251 @@
+﻿@{
+    Layout = "~/_DashboardLayout.cshtml";
+    Page.Title = "Lijsten";
+
+    var listData = GiftProvider.GetById(Convert.ToString(1));
+
+    var name = "";
+    var price = "";
+    var description = "";
+    var store = "";
+    var priority = "";
+
+    if (IsPost)
+    {
+
+        name = Request.Form["new-name"];
+        price = Request.Form["new-price"];
+        description = Request.Form["new-description"];
+        store = Request.Form["new-store"];
+        priority = Request.Form["new-priority"];
+
+        string connectionString = @"Data Source=(LocalDB)\MSSQLLocalDB;AttachDbFilename=|DataDirectory|\Database.mdf;Integrated Security=True";
+        string provider = "System.Data.SqlClient";
+        Database db = Database.OpenConnectionString(connectionString, provider);
+        var insertCommand = "INSERT INTO PresentListGifts (PresentListId, GiftName, GiftPrice, Description, Location, Priority) VALUES(@0, @1, @2, @3, @4, @5)";
+        db.Execute(insertCommand, 1, name, price, description, store, priority);
+
+        //Response.Redirect("~/Movies");
+
+
+    }
+
+
+}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pb-2 mb-3 border-bottom">
+    <h1 class="h2">Dashboard</h1>
+</div>
+<div id="content">
+    <h1>Overzicht cadeaus eigenaar</h1>
+    <table class="table" id="wedding_gifts">
+        <thead>
+            <tr>
+                <th>Prioriteit</th>
+                <th>Naam cadeau</th>
+                <th>Prijs</th>
+                <th>Beschrijving</th>
+                <th>Waar te kopen?</th>
+                <th>&nbsp;</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (Gift data in listData)
+            {
+                    <tr>
+                        <td>@data.Priority</td>
+                        <td>@data.GiftName</td>
+                        <td>€@data.GiftPrice</td>
+                        <td>@data.Description</td>
+                        <td>@data.Location</td>
+                        <td><a class='btn btn-delete btn-danger' href="giftEdit?ID=@data.GiftId">Edit/Delete</a></td>
+                    </tr>
+            }
+                @*<tr>
+                <td class='priority'>2</td>
+                <td>Lorem ipsum.</td>
+                <td>$15,00</td>
+                <td>Lorem ipsum dolor sit amet.</td>
+                <td>www.bol.com</td>
+                <td><a class='btn btn-delete btn-danger'>Delete</a></td>
+            </tr>
+            <tr>
+                <td class='priority'>3</td>
+                <td>Lorem ipsum.</td>
+                <td>&#8364;15,00</td>
+                <td>Lorem ipsum dolor sit amet.</td>
+                <td>www.bol.com</td>
+                <td><a class='btn btn-delete btn-danger'>Delete</a></td>
+            </tr>
+            <tr>
+                <td class='priority'>4</td>
+                <td>Lorem ipsum.</td>
+                <td>&#8364;15,00</td>
+                <td>Lorem ipsum dolor sit amet.</td>
+                <td>www.bol.com</td>
+                <td><a class='btn btn-delete btn-danger'>Delete</a></td>
+            </tr>
+            <tr>
+                <td class='priority'>5</td>
+                <td>Lorem ipsum.</td>
+                <td>&#8364;15,00</td>
+                <td>Lorem ipsum dolor sit amet.</td>
+                <td>www.bol.com</td>
+                <td><a class='btn btn-delete btn-danger'>Delete</a></td>
+            </tr>*@
+            </tbody>
+    </table>
+    <form method="post">
+        <fieldset>
+            <legend>Movie Information</legend>
+            <p>
+                <label for="title">Title:</label>
+                <input type="text" name="title" value="@Request.Form["title"]" />
+                @Html.ValidationMessage("title")
+
+            <p>
+                <label for="genre">Genre:</label>
+                <input type="text" name="genre" value="@Request.Form["genre"]" />
+                @Html.ValidationMessage("genre")
+
+            <p>
+                <label for="year">Year:</label>
+                <input type="text" name="year" value="@Request.Form["year"]" />
+                @Html.ValidationMessage("year")
+
+            <p><input type="submit" name="buttonSubmit" value="Add Movie" /></p>
+        </fieldset>
+    </form>
+    <!-- Button trigger modal -->
+    <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#myModal">
+        Cadeau toevoegen
+    </button>
+    <button type="button" class="btn btn-primary" onclick="console.log(wedding_gifts)">
+        test
+    </button>
+    <!-- Modal -->
+    <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">Specificeer cadeau</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="control-group" id="fields">
+                        <div class="controls">
+                            <div class="form row">
+                                <form style="width: 80%; margin-left: 20px;" id="new-item" method="post">
+                                    <fieldset>
+                                        <div class="form-group">
+                                            <label>Naam cadeau</label>
+                                            <input required type="text" class="form-control" id="new-name" placeholder="Naam" name="new-name" value="@Request.Form["new-name"]">
+                                            @Html.ValidationMessage("new-name")
+                                        </div>
+                                        <div class="form-group">
+                                            <label>Prijs</label>
+                                            <input required type="number" class="form-control" id="new-price" placeholder="Prijs" name="new-price" value="@Request.Form["new-price"]">
+                                            @Html.ValidationMessage("new-price")
+                                        </div>
+                                        <div class="form-group">
+                                            <label>Beschrijving</label>
+                                            <input required type="text" class="form-control" id="new-description" placeholder="Beschrijving" name="new-description" value="@Request.Form["new-description"]">
+                                            @Html.ValidationMessage("new-description")
+                                        </div>
+                                        <div class="form-group">
+                                            <label>Waar te kopen (optioneel)</label>
+                                            <input type="text" class="form-control" id="new-store" placeholder="Waar te kopen" name="new-store" value="@Request.Form["new-store"]">
+                                            @Html.ValidationMessage("new-store")
+                                        </div>
+                                        <div class="form-group">
+                                            <label>Geef een prioriteit op (als nummer)</label>
+                                            <input required type="number" class="form-control" id="new-priority" placeholder="Prioriteit" name="new-priority" value="@Request.Form["new-priority"]">
+                                            @Html.ValidationMessage("new-priority")
+                                        </div>
+                                        <input type="submit" name="buttonSubmit" class="btn btn-primary">Toevoegen
+                                    </fieldset>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+<script src="https://code.jquery.com/ui/1.12.0/jquery-ui.min.js"></script>
+<script>
+
+    //feather.replace();
+    //$('tbody').sortable();
+    //$(document).ready(function () {
+    //    var $name = $('#new-name');
+    //    var $price = $('#new-price');
+    //    var $description = $('#new-description');
+    //    var $store = $('#new-store');
+
+    //    var fixHelperModified = function (e, tr) {
+    //        var $originals = tr.children();
+    //        var $helper = tr.clone();
+    //        $helper.children().each(function (index) {
+    //            $(this).width($originals.eq(index).width())
+    //        });
+    //        return $helper;
+    //    };
+
+    //    //Make diagnosis table sortable
+    //    $("#wedding_gifts tbody").sortable({
+    //        helper: fixHelperModified,
+    //        stop: function (event, ui) {
+    //            renumber_table('#wedding_gifts')
+    //        }
+    //    }).disableSelection();
+
+
+    //    //Delete
+    //    $('table').on('click', '.btn-delete', function () {
+    //        tableID = '#' + $(this).closest('table').attr('id');
+    //        r = confirm('Verwijderen?');
+    //        if (r) {
+    //            $(this).closest('tr').remove();
+    //            renumber_table(tableID);
+    //        }
+    //    });
+
+    //    $('#new-item').on('submit', function (e) {
+    //        e.preventDefault();
+    //        var name = $name.val();
+    //        var price = $price.val();
+    //        var description = $description.val();
+    //        var store = $store.val();
+
+    //        if (store === '') {
+    //            store = 'niet opgegeven';
+    //        }
+
+    //        $('table tbody').append('<tr>'
+    //            + '<td class="priority"></td>'
+    //            + '<td>' + name + '</td>'
+    //            + '<td>&#8364;' + price + '</td>'
+    //            + '<td>' + description + '</td>'
+    //            + '<td>' + store + '</td>'
+    //            + '<td><a class="btn btn-delete btn-danger">Delete</a></td>'
+    //            + '</tr>');
+
+    //        renumber_table('#wedding_gifts');
+    //        $('#myModal').modal('hide');
+    //        this.reset();
+    //    });
+
+    //});
+
+    //Renumber table rows
+    function renumber_table(tableID) {
+        $(tableID + " tr").each(function () {
+            count = $(this).parent().children().index($(this)) + 1;
+            $(this).find('.priority').html(count);
+        });
+    }
+</script>

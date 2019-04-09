@@ -1,0 +1,126 @@
+﻿@{
+    Layout = "~/_DashboardLayout.cshtml";
+    Page.Title = "Lijsten";
+
+    var name = "";
+    var price = "";
+    var description = "";
+    var store = "";
+    var priority = "";
+
+    if (!IsPost)
+    {
+        if (!Request.QueryString["giftId"].IsEmpty() && Request.QueryString["giftId"].IsInt())
+        {
+            string giftId = Request.QueryString["giftId"];
+            var giftData = GiftProvider.GetSingleById(giftId);
+
+            if (giftData != null)
+            {
+                name = giftData[0].GiftName;
+                price = giftData[0].GiftPrice;
+                description = giftData[0].Description;
+                store = giftData[0].Location;
+                priority = Convert.ToString(giftData[0].Priority);
+            }
+            else
+            {
+                Response.Redirect("~/");
+            }
+        }
+        else
+        {
+            Response.Redirect("~/");
+        }
+    }
+
+    if (IsPost)
+    {
+        if (Request["button"] == "save")
+        {
+
+            Validation.RequireField("new-name", "Vul een naam in");
+            Validation.RequireField("new-price", "Vul een prijs in");
+            Validation.RequireField("new-description", "Voer een descriptie in");
+            Validation.RequireField("new-priority", "Vul een prioriteit in");
+
+            name = Request.Form["new-name"];
+            price = Request.Form["new-price"];
+            description = Request.Form["new-description"];
+            store = Request.Form["new-store"];
+            priority = Request.Form["new-priority"];
+
+            if (Validation.IsValid())
+            {
+                string listId = Request.QueryString["listId"];
+                string giftId = Request.QueryString["giftId"];
+                string uniqueToken = Request.QueryString["unique_token"];
+                GiftProvider.updateGift(giftId, name, price, description, store, priority);
+                Response.Redirect("~/Dashboard/ListDetails?list=" + listId + "&unique_token=" + uniqueToken);
+            }
+        }
+        else if (Request["button"] == "delete")
+        {
+            string listId = Request.QueryString["listId"];
+            string giftId = Request.QueryString["giftId"];
+            string uniqueToken = Request.QueryString["unique_token"];
+            GiftProvider.deleteGiftById(giftId);
+            Response.Redirect("~/Dashboard/ListDetails?list=" + listId + "&unique_token=" + uniqueToken);
+        }
+
+    }
+}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pb-2 mb-3 border-bottom">
+    <h1 class="h2">Dashboard</h1>
+</div>
+<div id="content">
+    <!-- Button trigger modal -->
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">Update cadeau</h5>
+                </div>
+                <div class="modal-body">
+                    <div class="control-group" id="fields">
+                        <div class="controls">
+                            <div class="form row">
+                                <form style="width: 80%; margin-left: 20px;" id="new-item" method="post">
+                                    <fieldset>
+                                        <div class="form-group">
+                                            <label>Naam cadeau</label>
+                                            <input required type="text" class="form-control" id="new-name" placeholder="Naam" name="new-name" value="@name">
+                                            @Html.ValidationMessage("new-name")
+                                        </div>
+                                        <div class="form-group">
+                                            <label>Prijs</label>
+                                            <input required type="number" class="form-control" id="new-price" placeholder="Prijs" name="new-price" value="@price">
+                                            @Html.ValidationMessage("new-price")
+                                        </div>
+                                        <div class="form-group">
+                                            <label>Beschrijving</label>
+                                            <input type="text" class="form-control" id="new-description" placeholder="Beschrijving" name="new-description" value="@description">
+                                            @Html.ValidationMessage("new-description")
+                                        </div>
+                                        <div class="form-group">
+                                            <label>Waar te kopen (optioneel)</label>
+                                            <input type="text" class="form-control" id="new-store" placeholder="Waar te kopen" name="new-store" value="@store">
+                                            @Html.ValidationMessage("new-store")
+                                        </div>
+                                        <div class="form-group">
+                                            <label>Geef een prioriteit op (als nummer)</label>
+                                            <input required type="number" class="form-control" id="new-priority" placeholder="Prioriteit" name="new-priority" value="@priority">
+                                            @Html.ValidationMessage("new-priority")
+                                        </div>
+                                        <input type="submit" name="button" class="btn btn-primary" value="save">
+                                        <input type="submit" name="button" class="btn btn-primary btn-danger " style="float:right;" value="delete">
+                                    </fieldset>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+<script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+<script src="https://code.jquery.com/ui/1.12.0/jquery-ui.min.js"></script>
